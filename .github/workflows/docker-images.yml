@@ -23,15 +23,17 @@ jobs:
       run: echo ${GH_PACKAGES_TOKEN} | docker login -u ${GITHUB_ACTOR} --password-stdin ghcr.io
       env:
         GH_PACKAGES_TOKEN: ${{ secrets.GH_PACKAGES_TOKEN }}
+    - name: Pull last build image
+      run: >
+        docker pull ghcr.io/rickardp/emscripten-devcontainer-buildcache:llvm-${{ matrix.LLVM_VERSION }} || true
     - name: Build LLVM base image
       run: >
-        _image=ghcr.io/rickardp/emscripten-devcontainer-buildcache:llvm-${{ matrix.LLVM_VERSION }}
         docker pull $_image || true
         docker buildx build
         --build-arg LLVM_VERSION=${{ matrix.LLVM_VERSION }}
         --platform ${{ matrix.platforms }}
-        --cache-from $_image
-        --tag $_image
+        --cache-from ghcr.io/rickardp/emscripten-devcontainer-buildcache:llvm-${{ matrix.LLVM_VERSION }}
+        --tag ghcr.io/rickardp/emscripten-devcontainer-buildcache:llvm-${{ matrix.LLVM_VERSION }}
         --target llvm_base
         --push
         .
