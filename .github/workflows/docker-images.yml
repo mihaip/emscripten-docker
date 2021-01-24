@@ -24,7 +24,7 @@ jobs:
     - name: Login to ghcr.io
       run: echo ${GH_PACKAGES_TOKEN} | docker login -u ${GITHUB_ACTOR} --password-stdin ghcr.io
       env:
-        GH_PACKAGES_TOKEN: secrets.GH_PACKAGES_TOKEN
+        GH_PACKAGES_TOKEN: ${{ secrets.GH_PACKAGES_TOKEN }}
     - name: Build LLVM base image
       run: >
         docker buildx build
