@@ -14,7 +14,7 @@ RUN mkdir -p /llvm-project/build \
  && cd /llvm-project/build \
  && cmake ../llvm -DCMAKE_BUILD_TYPE=Release -DLLVM_ENABLE_PROJECTS='lld;clang' -DLLVM_TARGETS_TO_BUILD="host;WebAssembly" -DLLVM_INCLUDE_EXAMPLES=OFF -DLLVM_INCLUDE_TESTS=OFF
 
-RUN cd /llvm-project/build && cmake --build .
+RUN cd /llvm-project/build && cmake --build --parallel 4 .
 
 WORKDIR /llvm-project
 
