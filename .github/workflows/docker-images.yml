@@ -1,0 +1,33 @@
+name: Publish Docker images
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+
+  build:
+
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - EMSDK_VERSION: 2.0.12
+            LLVM_VERSION: 11.1.0-rc1
+            platforms: linux/arm64/v8,linux/amd64
+    steps:
+    - uses: actions/checkout@v2
+    - uses: docker/setup-qemu-action@v1
+    - uses: docker/setup-buildx-action@v1
+    - name: Build LLVM base image
+      run: >
+        docker buildx build
+        --build-arg EMSDK_VERSION=${{ matrix.EMSDK_VERSION }}
+        --build-arg LLVM_VERSION=${{ matrix.LLVM_VERSION }}
+        --platform ${{ matrix.platforms }}
+        --tag ghcr.io/rickardp/_emscripten-devcontainer:${{ matrix.EMSDK_VERSION }}
+        --target llvm_base
+        --push
+        .
