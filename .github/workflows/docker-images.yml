@@ -21,13 +21,17 @@ jobs:
     - uses: actions/checkout@v2
     - uses: docker/setup-qemu-action@v1
     - uses: docker/setup-buildx-action@v1
+    - name: Login to ghcr.io
+      run: echo ${GH_PACKAGES_TOKEN} | docker login -u ${GITHUB_ACTOR} --password-stdin ghcr.io
+      env:
+        GH_PACKAGES_TOKEN: secrets.GH_PACKAGES_TOKEN
     - name: Build LLVM base image
       run: >
         docker buildx build
         --build-arg EMSDK_VERSION=${{ matrix.EMSDK_VERSION }}
         --build-arg LLVM_VERSION=${{ matrix.LLVM_VERSION }}
         --platform ${{ matrix.platforms }}
-        --tag ghcr.io/rickardp/_emscripten-devcontainer:${{ matrix.EMSDK_VERSION }}
+        --tag ghcr.io/rickardp/-cache-emscripten-devcontainer:${{ matrix.EMSDK_VERSION }}
         --target llvm_base
         --push
         .
