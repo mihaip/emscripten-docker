@@ -30,4 +30,7 @@ RUN cd / && git clone https://github.com/emscripten-core/emsdk
 
 # RUN echo ${EMSDK_VERSION} && ./emsdk list &&  ./emsdk install ${EMSDK_VERSION}
 
+FROM base AS emsdk
+
+COPY --from=llvm_base /llvm-project/build /llvm-project/build
 
