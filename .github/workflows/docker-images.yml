@@ -7,9 +7,7 @@ on:
     branches: [ master ]
 
 jobs:
-
-  build:
-
+  build-llvm:
     runs-on: ubuntu-20.04
     strategy:
       matrix:
@@ -27,10 +25,9 @@ jobs:
         GH_PACKAGES_TOKEN: ${{ secrets.GH_PACKAGES_TOKEN }}
     - name: Build LLVM base image
       run: >
-        _image=ghcr.io/rickardp/emscripten-devcontainer-buildcache:llvm-${{ matrix.EMSDK_VERSION }}
-        docker pull $_image | true
+        _image=ghcr.io/rickardp/emscripten-devcontainer-buildcache:llvm-${{ matrix.LLVM_VERSION }}
+        docker pull $_image || true
         docker buildx build
-        --build-arg EMSDK_VERSION=${{ matrix.EMSDK_VERSION }}
         --build-arg LLVM_VERSION=${{ matrix.LLVM_VERSION }}
         --platform ${{ matrix.platforms }}
         --cache-from $_image
