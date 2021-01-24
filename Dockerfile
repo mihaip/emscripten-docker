@@ -5,7 +5,7 @@ FROM ubuntu:20.04 AS base
 ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get -yq update && apt-get -yq install --no-install-recommends binutils build-essential ca-certificates file git python3 python3-pip nodejs npm cmake
 
-FROM base AS build
+FROM base AS llvm_base
 ARG LLVM_VERSION
 
 RUN cd / && git clone --depth 1 --branch llvmorg-${LLVM_VERSION} https://github.com/llvm/llvm-project
@@ -18,6 +18,7 @@ RUN cd /llvm-project/build && cmake --build .
 
 WORKDIR /llvm-project
 
+FROM base AS emscripten_base
 
 ARG EMSDK_VERSION
 
