@@ -7,7 +7,7 @@ on:
     branches: [ master ]
 
 jobs:
-  build-llvm:
+  build:
     runs-on: ubuntu-20.04
     strategy:
       matrix:
@@ -23,16 +23,22 @@ jobs:
       run: echo ${GH_PACKAGES_TOKEN} | docker login -u ${GITHUB_ACTOR} --password-stdin ghcr.io
       env:
         GH_PACKAGES_TOKEN: ${{ secrets.GH_PACKAGES_TOKEN }}
-    - name: Pull last build image
-      run: >
-        docker pull ghcr.io/rickardp/emscripten-devcontainer-buildcache:llvm-${{ matrix.LLVM_VERSION }} || true
+    - name: Cache Docker layers
+      uses: actions/cache@v2
+      id: cache
+      with:
+        path: /tmp/.buildx-cache
+        key: ${{ runner.os }}-${{ matrix.EMSDK_VERSION }}-buildx-${{ github.sha }}
+        restore-keys: |
+          ${{ runner.os }}-${{ matrix.EMSDK_VERSION }}-buildx-
     - name: Build LLVM base image
       run: >
         docker buildx build
+        --cache-from "type=local,src=/tmp/.buildx-cache"
+        --cache-to "type=local,dest=/tmp/.buildx-cache"
+        --build-arg EMSDK_VERSION=${{ matrix.EMSDK_VERSION }}
         --build-arg LLVM_VERSION=${{ matrix.LLVM_VERSION }}
         --platform ${{ matrix.platforms }}
-        --cache-from ghcr.io/rickardp/emscripten-devcontainer-buildcache:llvm-${{ matrix.LLVM_VERSION }}
-        --tag ghcr.io/rickardp/emscripten-devcontainer-buildcache:llvm-${{ matrix.LLVM_VERSION }}
-        --target llvm_base
+        --tag ghcr.io/rickardp/emscripten-devcontainer:${{ matrix.EMSDK_VERSION }}
         --push
         .
