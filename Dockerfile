@@ -5,14 +5,16 @@ FROM ubuntu:20.04 AS base
 ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get -yq update && apt-get -yq install --no-install-recommends binutils build-essential ca-certificates file git python3 python3-pip nodejs npm cmake
 
-FROM base AS llvm_base
+FROM --platform=$BUILDPLATFORM ubuntu:20.04 AS llvm_base
 ARG LLVM_VERSION
 
+ENV DEBIAN_FRONTEND=noninteractive
+RUN apt-get -yq update && apt-get -yq install --no-install-recommends build-essential ca-certificates cmake git binutils-aarch64-linux-gnu binutils-x86-64-linux-gnu gcc-x86-64-linux-gnu gcc-aarch64-linux-gnu python3 python3-pip
 RUN cd / && git clone --depth 1 --branch llvmorg-${LLVM_VERSION} https://github.com/llvm/llvm-project
 
 RUN mkdir -p /llvm-project/build \
  && cd /llvm-project/build \
- && cmake ../llvm -DCMAKE_BUILD_TYPE=Release -DLLVM_ENABLE_PROJECTS='lld;clang' -DLLVM_TARGETS_TO_BUILD="host;WebAssembly" -DLLVM_INCLUDE_EXAMPLES=OFF -DLLVM_INCLUDE_TESTS=OFF
+ && cmake ../llvm -DCMAKE_SYSTEM_NAME=$TARGETPLATFORM -DCMAKE_BUILD_TYPE=Release -DLLVM_ENABLE_PROJECTS='lld;clang' -DLLVM_TARGETS_TO_BUILD="host;WebAssembly" -DLLVM_INCLUDE_EXAMPLES=OFF -DLLVM_INCLUDE_TESTS=OFF
 
 RUN cd /llvm-project/build && cmake --build . --parallel 8
 
