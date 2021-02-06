@@ -27,8 +27,18 @@ jobs:
         key: ${{ runner.os }}-${{ matrix.EMSDK_VERSION }}-buildx-${{ github.sha }}
         restore-keys: |
           ${{ runner.os }}-${{ matrix.EMSDK_VERSION }}-buildx-
+    - name: Build and push CMake cross-compiler image
+      run: >
+        docker buildx build
+        --cache-from "type=local,src=/tmp/.buildx-cache"
+        --cache-to "type=local,dest=/tmp/.buildx-cache"
+        --platform ${{ matrix.platforms }}
+        --tag ghcr.io/rickardp/cmake-cross:latest
+        --push
+        .
     - name: Build LLVM base image
       run: >
+        docker pull ghcr.io/rickardp/cmake-cross:latest
         docker buildx build
         --cache-from "type=local,src=/tmp/.buildx-cache"
         --cache-to "type=local,dest=/tmp/.buildx-cache"

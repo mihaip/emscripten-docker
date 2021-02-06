@@ -8,7 +8,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get -yq update && apt-get -yq install --no-install-recommends binutils build-essential ca-certificates file git python3 python3-pip nodejs npm cmake
 RUN echo "${TARGETPLATFORM} -- ${BUILDPLATFORM} -- $(uname -m)" >> /img.txt
 
-FROM --platform=$BUILDPLATFORM ubuntu:20.04 AS llvm_base
+FROM --platform=$BUILDPLATFORM ubuntu:20.04 AS llvm_build
 ARG TARGETPLATFORM
 ARG BUILDPLATFORM
 ARG LLVM_VERSION
@@ -21,7 +21,7 @@ RUN mkdir -p /llvm-project/build \
  && cd /llvm-project/build \
  && cmake ../llvm -DCMAKE_SYSTEM_NAME=$TARGETPLATFORM -DCMAKE_BUILD_TYPE=Release -DLLVM_ENABLE_PROJECTS='lld;clang' -DLLVM_TARGETS_TO_BUILD="host;WebAssembly" -DLLVM_INCLUDE_EXAMPLES=OFF -DLLVM_INCLUDE_TESTS=OFF
 
-RUN cd /llvm-project/build && cmake --build . --parallel 8
+#RUN cd /llvm-project/build && cmake --build . --parallel 8
 RUN echo "${TARGETPLATFORM} -- ${BUILDPLATFORM} -- $(uname -m)" >> /llvm-project/build/img.txt
 
 WORKDIR /llvm-project
@@ -40,5 +40,5 @@ RUN cd / && git clone https://github.com/emscripten-core/emsdk
 
 FROM base AS emsdk
 
-COPY --from=llvm_base /llvm-project/build /llvm-project/build
+COPY --from=llvm_build /llvm-project/build /llvm-project/build
 
