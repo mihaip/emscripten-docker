@@ -5,4 +5,4 @@ as being able to use as a development container to provide a baseline developmen
 
 Another goal of this project is to provide an up to date build/dev exeprience for the Arm64 platform (including Raspberry Pi and the Apple Silicon).
 
-
+## How this image is built

@@ -48,6 +48,5 @@ RUN mkdir -p /test \
   && echo "project(TEST)\nadd_executable(test test.c)" > /test/CMakeLists.txt \
   && mkdir -p /test/build/aarch64 && cd /test/build/aarch64 && cmake -DCMAKE_TOOLCHAIN_FILE=/toolchains/linux/aarch64 ../.. && make \
   && mkdir -p /test/build/amd64 && cd /test/build/amd64 && cmake -DCMAKE_TOOLCHAIN_FILE=/toolchains/linux/amd64 ../.. && make \
-  && md5sum /test/build/*/test > /test/status && file /test/build/*/test >> /test/status
-
-RUN echo "${TARGETPLATFORM} -- ${BUILDPLATFORM} -- $(uname -m)" >> /img.txt
+  && md5sum /test/build/*/test > /test/status && file /test/build/*/test >> /test/status \
+  && echo "${TARGETPLATFORM} -- ${BUILDPLATFORM} -- $(uname -m)" > /test/arch
