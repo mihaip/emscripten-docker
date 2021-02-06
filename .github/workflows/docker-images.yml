@@ -22,10 +22,11 @@ jobs:
       id: cache
       with:
         path: /tmp/.buildx-cache
-        key: ${{ runner.os }}-cmake-buildx-${{ github.sha }}
+        key: ${{ runner.os }}-cmake-buildx-${{ hashFiles('cmake_cross.Dockerfile') }}
         restore-keys: |
           ${{ runner.os }}-cmake-buildx-
     - name: Build and push CMake cross-compiler image
+      if: steps.cache.outputs.cache-hit != 'true'
       run: >
         docker buildx build
         --cache-from "type=local,src=/tmp/.buildx-cache"
@@ -38,7 +39,7 @@ jobs:
       run: echo ${GH_PACKAGES_TOKEN} | docker login -u ${GITHUB_ACTOR} --password-stdin ghcr.io
       env:
         GH_PACKAGES_TOKEN: ${{ secrets.GH_PACKAGES_TOKEN }}
-      if: ${{ github.ref == 'refs/heads/master' }}
+      if: ${{ github.ref == 'refs/heads/master' }} && steps.cache.outputs.cache-hit != 'true'
     - name: Build LLVM base image
       run: >
         docker buildx build
@@ -49,7 +50,7 @@ jobs:
         --tag ghcr.io/rickardp/cmake-cross:latest
         --push
         .
-      if: ${{ github.ref == 'refs/heads/master' }}
+      if: ${{ github.ref == 'refs/heads/master' }} && steps.cache.outputs.cache-hit != 'true'
   build:
     runs-on: ubuntu-20.04
     needs: build-cmake-base
