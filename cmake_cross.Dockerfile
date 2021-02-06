@@ -27,8 +27,14 @@ RUN apt-get -yq update && apt-get -yq install --no-install-recommends \
 RUN mkdir -p /toolchains/linux \
   && echo "set(CMAKE_SYSTEM_NAME Linux)" > /toolchains/linux/aarch64 \
   && echo "set(CMAKE_SYSTEM_NAME Linux)" > /toolchains/linux/amd64 \
-  && echo "set(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)" > /toolchains/linux/aarch64 \
-  && echo "set(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)" > /toolchains/linux/amd64 \
+  && echo "set(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)" >> /toolchains/linux/aarch64 \
+  && echo "set(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)" >> /toolchains/linux/amd64 \
+  && echo "set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)" >> /toolchains/linux/aarch64 \
+  && echo "set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)" >> /toolchains/linux/amd64 \
+  && echo "set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)" >> /toolchains/linux/aarch64 \
+  && echo "set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)" >> /toolchains/linux/amd64 \
+  && echo "set(CMAKE_FIND_ROOT_PATH_MODE_PACKAGE ONLY)" >> /toolchains/linux/aarch64 \
+  && echo "set(CMAKE_FIND_ROOT_PATH_MODE_PACKAGE ONLY)" >> /toolchains/linux/amd64 \
   && echo "set(CMAKE_SYSTEM_PROCESSOR aarch64)" >> /toolchains/linux/aarch64 \
   && echo "set(CMAKE_SYSTEM_PROCESSOR x86_64)" >> /toolchains/linux/amd64 \
   && echo "set(CMAKE_C_COMPILER /usr/bin/aarch64-linux-gnu-gcc-9)" >> /toolchains/linux/aarch64 \
