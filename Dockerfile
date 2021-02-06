@@ -14,20 +14,25 @@ ARG BUILDPLATFORM
 ARG LLVM_VERSION
 RUN cd / && git clone --depth 1 --branch llvmorg-${LLVM_VERSION} https://github.com/llvm/llvm-project
 
+RUN mkdir -p /llvm-project/tools-build \
+ && cd /llvm-project/tools-build \
+ && cmake ../llvm -DCMAKE_BUILD_TYPE=Release -DLLVM_INCLUDE_EXAMPLES=OFF -DLLVM_INCLUDE_TESTS=OFF -DLLVM_ENABLE_PROJECTS='lld;clang' -DLLVM_TARGETS_TO_BUILD="host;WebAssembly"
+
 RUN mkdir -p /llvm-project/build \
  && cd /llvm-project/build \
- && cmake ../llvm -DCMAKE_TOOLCHAIN_FILE=/toolchains/$TARGETPLATFORM -DCMAKE_BUILD_TYPE=Release -DLLVM_ENABLE_PROJECTS='lld;clang' -DLLVM_TARGETS_TO_BUILD="host;WebAssembly" -DLLVM_INCLUDE_EXAMPLES=OFF -DLLVM_INCLUDE_TESTS=OFF
+ && cmake ../llvm -DLLVM_USE_HOST_TOOLS=true -DCLANG_TABLEGEN=/llvm-project/tools-build/bin/clang-tblgen -DLLVM_TABLEGEN=/llvm-project/tools-build/bin/llvm-tblgen -DCMAKE_TOOLCHAIN_FILE=/toolchains/$TARGETPLATFORM -DCMAKE_BUILD_TYPE=Release -DLLVM_ENABLE_PROJECTS='lld;clang' -DLLVM_TARGETS_TO_BUILD="host;WebAssembly" -DLLVM_INCLUDE_EXAMPLES=OFF -DLLVM_INCLUDE_TESTS=OFF
 
-RUN cd /llvm-project/build && cmake --build . --parallel 8
-RUN echo "${TARGETPLATFORM} -- ${BUILDPLATFORM} -- $(uname -m)" >> /llvm-project/build/img.txt
+RUN cd /llvm-project/tools-build && make -j8 llvm-tblgen && make -j8 clang-tblgen
+RUN cd /llvm-project/build && make -j8
+#RUN echo "${TARGETPLATFORM} -- ${BUILDPLATFORM} -- $(uname -m)" >> /llvm-project/build/img.txt
 
-WORKDIR /llvm-project
+#WORKDIR /llvm-project
 
-FROM base AS emscripten_base
+#FROM base AS emscripten_base
 
-ARG EMSDK_VERSION
+#ARG EMSDK_VERSION
 
-RUN cd / && git clone https://github.com/emscripten-core/emsdk
+#RUN cd / && git clone https://github.com/emscripten-core/emsdk
 
 # WORKDIR /emsdk
 
