@@ -27,7 +27,7 @@ jobs:
       if: steps.cache.outputs.cache-hit != 'true'
     - uses: docker/setup-buildx-action@v1
       if: steps.cache.outputs.cache-hit != 'true'
-    - name: Build and push CMake cross-compiler image
+    - name: Build CMake cross-compiler image
       if: steps.cache.outputs.cache-hit != 'true'
       run: >
         docker buildx build
@@ -42,20 +42,81 @@ jobs:
       env:
         GH_PACKAGES_TOKEN: ${{ secrets.GH_PACKAGES_TOKEN }}
       if: ${{ steps.cache.outputs.cache-hit != 'true' && github.ref == 'refs/heads/master' }}
-    - name: Build LLVM base image
+    - name: Push CMake cross-compiler image
       run: >
         docker buildx build
         --cache-from "type=local,src=/tmp/.buildx-cache"
-        --cache-to "type=local,dest=/tmp/.buildx-cache"
         --platform ${{ matrix.platforms }}
         --file cmake_cross.Dockerfile
         --tag ghcr.io/rickardp/cmake-cross:latest
         --push
         .
       if: ${{ steps.cache.outputs.cache-hit != 'true' && github.ref == 'refs/heads/master' }}
-  build:
+  build-llvm:
     runs-on: ubuntu-20.04
     needs: build-cmake-base
+    strategy:
+      matrix:
+        include:
+          - LLVM_VERSION: 11.1.0-rc1
+            platforms: linux/arm64/v8,linux/amd64
+    steps:
+    - uses: actions/checkout@v2
+    - name: Cache Docker layers
+      uses: actions/cache@v2
+      id: cache
+      with:
+        path: /tmp/.buildx-cache
+        key: ${{ runner.os }}-${{ matrix.LLVM_VERSION }}-llvm-buildx-${{ hashFiles('llvm.Dockerfile') }}
+        restore-keys: |
+          ${{ runner.os }}-${{ matrix.LLVM_VERSION }}-llvm-buildx-
+    - uses: docker/setup-qemu-action@v1
+    - uses: docker/setup-buildx-action@v1
+    - name: Pull host arch builder image for cross-compilation
+      run: >
+        docker pull ghcr.io/rickardp/cmake-cross:latest
+      if: steps.cache.outputs.cache-hit != 'true'
+    - name: Build LLVM source image
+      run: >
+        docker buildx build
+        --cache-from "type=local,src=/tmp/.buildx-cache"
+        --cache-to "type=local,dest=/tmp/.buildx-cache"
+        --build-arg LLVM_VERSION=${{ matrix.LLVM_VERSION }}
+        --platform linux/amd64
+        --file llvm.Dockerfile
+        --target llvm_base
+        .
+      if: steps.cache.outputs.cache-hit != 'true'
+    - name: Build LLVM base image
+      run: >
+        docker buildx build
+        --cache-from "type=local,src=/tmp/.buildx-cache"
+        --cache-to "type=local,dest=/tmp/.buildx-cache"
+        --build-arg LLVM_VERSION=${{ matrix.LLVM_VERSION }}
+        --platform ${{ matrix.platforms }}
+        --file llvm.Dockerfile
+        --tag ghcr.io/rickardp/llvm-base:${{ matrix.LLVM_VERSION }}
+        .
+      if: steps.cache.outputs.cache-hit != 'true'
+    - name: Login to ghcr.io
+      run: echo ${GH_PACKAGES_TOKEN} | docker login -u ${GITHUB_ACTOR} --password-stdin ghcr.io
+      env:
+        GH_PACKAGES_TOKEN: ${{ secrets.GH_PACKAGES_TOKEN }}
+      if: ${{ steps.cache.outputs.cache-hit != 'true' && github.ref == 'refs/heads/master' }}
+    - name: Push LLVM base image
+      run: >
+        docker buildx build
+        --cache-from "type=local,src=/tmp/.buildx-cache"
+        --build-arg LLVM_VERSION=${{ matrix.LLVM_VERSION }}
+        --platform ${{ matrix.platforms }}
+        --file llvm.Dockerfile
+        --tag ghcr.io/rickardp/llvm-base:${{ matrix.LLVM_VERSION }}
+        --push
+        .
+      if: ${{ steps.cache.outputs.cache-hit != 'true' && github.ref == 'refs/heads/master' }}
+  build:
+    runs-on: ubuntu-20.04
+    needs: build-llvm
     strategy:
       matrix:
         include:
@@ -64,20 +125,21 @@ jobs:
             platforms: linux/arm64/v8,linux/amd64
     steps:
     - uses: actions/checkout@v2
-    - uses: docker/setup-qemu-action@v1
-    - uses: docker/setup-buildx-action@v1
     - name: Cache Docker layers
       uses: actions/cache@v2
       id: cache
       with:
         path: /tmp/.buildx-cache
-        key: ${{ runner.os }}-${{ matrix.EMSDK_VERSION }}-buildx-${{ hashFiles('*Dockerfile','.github/workflows/*.yml') }}
+        key: ${{ runner.os }}-${{ matrix.EMSDK_VERSION }}-buildx-${{ hashFiles('emscripten.Dockerfile') }}
         restore-keys: |
           ${{ runner.os }}-${{ matrix.EMSDK_VERSION }}-buildx-
-    - name: Pull host arch builder image for cross-compilation
+    - uses: docker/setup-qemu-action@v1
+    - uses: docker/setup-buildx-action@v1
+    - name: Pull LLVM base image
       run: >
-        docker pull ghcr.io/rickardp/cmake-cross:latest
-    - name: Build LLVM base image
+        docker pull ghcr.io/rickardp/llvm-base:${{ matrix.LLVM_VERSION }}
+      if: steps.cache.outputs.cache-hit != 'true'
+    - name: Build EMSDK image
       run: >
         docker buildx build
         --cache-from "type=local,src=/tmp/.buildx-cache"
@@ -85,21 +147,24 @@ jobs:
         --build-arg EMSDK_VERSION=${{ matrix.EMSDK_VERSION }}
         --build-arg LLVM_VERSION=${{ matrix.LLVM_VERSION }}
         --platform ${{ matrix.platforms }}
+        --file emscripten.Dockerfile
         --tag ghcr.io/rickardp/emscripten-devcontainer:${{ matrix.EMSDK_VERSION }}
         .
+      if: steps.cache.outputs.cache-hit != 'true'
     - name: Login to ghcr.io
       run: echo ${GH_PACKAGES_TOKEN} | docker login -u ${GITHUB_ACTOR} --password-stdin ghcr.io
       env:
         GH_PACKAGES_TOKEN: ${{ secrets.GH_PACKAGES_TOKEN }}
-      if: ${{ github.ref == 'refs/heads/master' }}
-    - name: Build LLVM base image
+      if: ${{ steps.cache.outputs.cache-hit != 'true' && github.ref == 'refs/heads/master' }}
+    - name: Push EMSDK image
       run: >
         docker buildx build
         --cache-from "type=local,src=/tmp/.buildx-cache"
         --build-arg EMSDK_VERSION=${{ matrix.EMSDK_VERSION }}
         --build-arg LLVM_VERSION=${{ matrix.LLVM_VERSION }}
         --platform ${{ matrix.platforms }}
+        --file emscripten.Dockerfile
         --tag ghcr.io/rickardp/emscripten-devcontainer:${{ matrix.EMSDK_VERSION }}
         --push
         .
-      if: ${{ github.ref == 'refs/heads/master' }}
+      if: ${{ steps.cache.outputs.cache-hit != 'true' && github.ref == 'refs/heads/master' }}
