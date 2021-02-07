@@ -122,6 +122,7 @@ jobs:
         include:
           - EMSDK_VERSION: 2.0.12
             LLVM_VERSION: 11.1.0-rc1
+            BINARYEN_VERSION: 99
             platforms: linux/arm64/v8,linux/amd64
     steps:
     - uses: actions/checkout@v2
@@ -146,6 +147,7 @@ jobs:
         --cache-to "type=local,dest=/tmp/.buildx-cache"
         --build-arg EMSDK_VERSION=${{ matrix.EMSDK_VERSION }}
         --build-arg LLVM_VERSION=${{ matrix.LLVM_VERSION }}
+        --build-arg BINARYEN_VERSION=${{ matrix.BINARYEN_VERSION }}
         --platform ${{ matrix.platforms }}
         --file emscripten.Dockerfile
         --tag ghcr.io/rickardp/emscripten-devcontainer:${{ matrix.EMSDK_VERSION }}
@@ -162,6 +164,7 @@ jobs:
         --cache-from "type=local,src=/tmp/.buildx-cache"
         --build-arg EMSDK_VERSION=${{ matrix.EMSDK_VERSION }}
         --build-arg LLVM_VERSION=${{ matrix.LLVM_VERSION }}
+        --build-arg BINARYEN_VERSION=${{ matrix.BINARYEN_VERSION }}
         --platform ${{ matrix.platforms }}
         --file emscripten.Dockerfile
         --tag ghcr.io/rickardp/emscripten-devcontainer:${{ matrix.EMSDK_VERSION }}
