@@ -22,8 +22,8 @@ RUN mkdir -p /llvm-project/build \
  && cd /llvm-project/build \
  && cmake ../llvm -DLLVM_USE_HOST_TOOLS=true -DCLANG_TABLEGEN=/llvm-project/tools-build/bin/clang-tblgen -DLLVM_TABLEGEN=/llvm-project/tools-build/bin/llvm-tblgen -DCMAKE_TOOLCHAIN_FILE=/toolchains/$TARGETPLATFORM -DCMAKE_BUILD_TYPE=Release -DLLVM_ENABLE_PROJECTS='lld;clang' -DLLVM_TARGETS_TO_BUILD="host;WebAssembly" -DLLVM_INCLUDE_EXAMPLES=OFF -DLLVM_INCLUDE_TESTS=OFF
 
-RUN cd /llvm-project/tools-build && make -j8 llvm-tblgen && make -j8 clang-tblgen
-RUN cd /llvm-project/build && make -j8
+RUN cd /llvm-project/tools-build && make -j4 llvm-tblgen && make -j8 clang-tblgen
+RUN cd /llvm-project/build && make -j4
 #RUN echo "${TARGETPLATFORM} -- ${BUILDPLATFORM} -- $(uname -m)" >> /llvm-project/build/img.txt
 
 #WORKDIR /llvm-project
