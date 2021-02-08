@@ -15,7 +15,7 @@ WORKDIR /binaryen/build
 
 RUN cmake -DCMAKE_TOOLCHAIN_FILE=/toolchains/$TARGETPLATFORM -DCMAKE_BUILD_TYPE=Release .. && make -j4
 
-FROM --platform=$BUILDPLATFORM binaryen AS emscripten_base
+FROM binaryen AS emscripten_base
 ARG EMSDK_VERSION
 RUN cd / && git clone https://github.com/emscripten-core/emscripten --depth 1 --branch ${EMSDK_VERSION}
 COPY --from=binaryen /binaryen/build /binaryen/build
