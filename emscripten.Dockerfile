@@ -24,13 +24,13 @@ FROM ghcr.io/rickardp/llvm-base:${LLVM_VERSION} AS llvm
 
 RUN apt-get -yq update && apt-get -yq install --no-install-recommends binutils build-essential ca-certificates file git python3 python3-pip nodejs npm cmake
 
+COPY --from=emscripten_base /binaryen/build /binaryen/build
+COPY --from=emscripten_base /emscripten /emscripten
+
 RUN echo "LLVM_ROOT = '/llvm-project/build/bin'" >> /emscripten/.emscripten \
  && echo "BINARYEN_ROOT = '/binaryen/build'" >> /emscripten/.emscripten \
  && echo "NODE_JS = '/usr/bin/node'" >> /emscripten/.emscripten \
  && /emscripten/emcc --help
-
-COPY --from=emscripten_base /binaryen/build /binaryen/build
-COPY --from=emscripten_base /emscripten /emscripten
 
 ENV PATH=/emscripten:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
