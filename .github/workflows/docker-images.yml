@@ -140,11 +140,25 @@ jobs:
       run: >
         docker pull ghcr.io/rickardp/llvm-base:${{ matrix.LLVM_VERSION }}
       if: steps.cache.outputs.cache-hit != 'true'
-    - name: Build EMSDK image
+    - name: Build Emscripten base image
       run: >
         docker buildx build
         --cache-from "type=local,src=/tmp/.buildx-cache"
         --cache-to "type=local,dest=/tmp/.buildx-cache"
+        --build-arg EMSDK_VERSION=${{ matrix.EMSDK_VERSION }}
+        --build-arg LLVM_VERSION=${{ matrix.LLVM_VERSION }}
+        --build-arg BINARYEN_VERSION=${{ matrix.BINARYEN_VERSION }}
+        --platform ${{ matrix.platforms }}
+        --file emscripten.Dockerfile
+        --tag ghcr.io/rickardp/emscripten-devcontainer:${{ matrix.EMSDK_VERSION }}
+        --target emscripten_base
+        .
+      if: steps.cache.outputs.cache-hit != 'true'
+    - name: Build Emscripten dist image
+      run: >
+        docker buildx build
+        --cache-from "type=local,src=/tmp/.buildx-cache-local"
+        --cache-to "type=local,dest=/tmp/.buildx-cache-local"
         --build-arg EMSDK_VERSION=${{ matrix.EMSDK_VERSION }}
         --build-arg LLVM_VERSION=${{ matrix.LLVM_VERSION }}
         --build-arg BINARYEN_VERSION=${{ matrix.BINARYEN_VERSION }}
@@ -158,10 +172,10 @@ jobs:
       env:
         GH_PACKAGES_TOKEN: ${{ secrets.GH_PACKAGES_TOKEN }}
       if: ${{ steps.cache.outputs.cache-hit != 'true' && github.ref == 'refs/heads/master' }}
-    - name: Push EMSDK image
+    - name: Push Emscripten dist image
       run: >
         docker buildx build
-        --cache-from "type=local,src=/tmp/.buildx-cache"
+        --cache-from "type=local,src=/tmp/.buildx-cache-local"
         --build-arg EMSDK_VERSION=${{ matrix.EMSDK_VERSION }}
         --build-arg LLVM_VERSION=${{ matrix.LLVM_VERSION }}
         --build-arg BINARYEN_VERSION=${{ matrix.BINARYEN_VERSION }}
