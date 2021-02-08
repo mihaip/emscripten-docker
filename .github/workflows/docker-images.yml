@@ -157,6 +157,7 @@ jobs:
     - name: Build Emscripten dist image
       run: >
         docker buildx build
+        --cache-from "type=local,src=/tmp/.buildx-cache"
         --cache-from "type=local,src=/tmp/.buildx-cache-local"
         --cache-to "type=local,dest=/tmp/.buildx-cache-local"
         --build-arg EMSDK_VERSION=${{ matrix.EMSDK_VERSION }}
@@ -175,6 +176,7 @@ jobs:
     - name: Push Emscripten dist image
       run: >
         docker buildx build
+        --cache-from "type=local,src=/tmp/.buildx-cache"
         --cache-from "type=local,src=/tmp/.buildx-cache-local"
         --build-arg EMSDK_VERSION=${{ matrix.EMSDK_VERSION }}
         --build-arg LLVM_VERSION=${{ matrix.LLVM_VERSION }}
