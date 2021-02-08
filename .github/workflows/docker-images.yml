@@ -131,9 +131,9 @@ jobs:
       id: cache
       with:
         path: /tmp/.buildx-cache
-        key: ${{ runner.os }}-${{ matrix.EMSDK_VERSION }}-buildx-${{ hashFiles('emscripten.Dockerfile') }}
+        key: ${{ runner.os }}-${{ matrix.EMSDK_VERSION }}-emscripten-buildx-${{ hashFiles('emscripten.Dockerfile') }}
         restore-keys: |
-          ${{ runner.os }}-${{ matrix.EMSDK_VERSION }}-buildx-
+          ${{ runner.os }}-${{ matrix.EMSDK_VERSION }}-emscripten-buildx-
     - uses: docker/setup-qemu-action@v1
     - uses: docker/setup-buildx-action@v1
     - name: Pull LLVM base image
