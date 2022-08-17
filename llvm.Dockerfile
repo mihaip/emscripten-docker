@@ -1,4 +1,4 @@
-ARG LLVM_VERSION=11.1.0-rc1
+ARG LLVM_VERSION=14.0.0
 
 FROM ubuntu:20.04 AS base
 ARG TARGETPLATFORM
@@ -7,7 +7,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get -yq update && apt-get -yq install --no-install-recommends binutils build-essential ca-certificates file git python3 python3-pip nodejs npm cmake
 RUN echo "${TARGETPLATFORM} -- ${BUILDPLATFORM} -- $(uname -m)" >> /img.txt
 
-FROM --platform=$BUILDPLATFORM ghcr.io/rickardp/cmake-cross:latest AS llvm_base
+FROM --platform=$BUILDPLATFORM ghcr.io/mihaip/cmake-cross:latest AS llvm_base
 ARG TARGETPLATFORM
 ARG BUILDPLATFORM
 ARG LLVM_VERSION
