@@ -54,7 +54,7 @@ jobs:
     strategy:
       matrix:
         include:
-          - LLVM_VERSION: 14.0.0
+          - LLVM_VERSION: 15.0.0
             platforms: linux/arm64/v8,linux/amd64
     steps:
     - uses: actions/checkout@v2
@@ -116,9 +116,9 @@ jobs:
     strategy:
       matrix:
         include:
-          - EMSDK_VERSION: 2.0.34
-            LLVM_VERSION: 14.0.0
-            BINARYEN_VERSION: 102
+          - EMSDK_VERSION: 3.1.23
+            LLVM_VERSION: 15.0.0
+            BINARYEN_VERSION: 110
             platforms: linux/arm64/v8,linux/amd64
     steps:
     - uses: actions/checkout@v2
